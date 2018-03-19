@@ -23,7 +23,7 @@ module.exports = app => {
       param =>
         new Promise(async (resolve, reject) => {
           if (!params[param]) {
-            return res.send(`missing required parameter: ${param}`);
+            return reject(`missing required parameter: ${param}`);
           }
 
           const modelClass = PARAMS[param];
@@ -31,10 +31,10 @@ module.exports = app => {
             .model(modelClass)
             .findById(params[param]);
           if (!instance) {
-            reject(`resource not found for parameter: ${param}`);
+            return reject(`resource not found for parameter: ${param}`);
           }
 
-          resolve({ param, instance });
+          return resolve({ param, instance });
         })
     );
 
