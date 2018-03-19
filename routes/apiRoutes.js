@@ -19,23 +19,6 @@ module.exports = app => {
       return handler.handle(req, res);
     }
 
-    // handler.params.forEach(async param => {
-    //   if (!params[param]) {
-    //     return res.send(`missing required parameter: ${param}`);
-    //   }
-
-    //   const modelClass = PARAMS[param];
-    //   const instance = await mongoose.model(modelClass).findById(params[param]);
-    //   console.log("logging");
-    //   if (!instance) {
-    //     return res.send(`resource not found for parameter: ${param}`);
-    //   }
-
-    //   req.params[param] = instance;
-    //   console.log(req.params);
-    // });
-    // console.log("called first");
-
     const promises = handler.params.map(
       param =>
         new Promise(async (resolve, reject) => {
