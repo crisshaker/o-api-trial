@@ -3,22 +3,33 @@ const User = mongoose.model("User");
 const Post = mongoose.model("Post");
 
 module.exports = {
-  createUser: async (req, res) => {
-    const user = new User(req.body.data);
-    await user.save();
+  createUser: {
+    handle: async (req, res) => {
+      const user = new User(req.body.data);
+      await user.save();
 
-    return res.json(user);
+      return res.json(user);
+    }
   },
-  createPost: async (req, res) => {
-    const post = new Post(req.body.data);
-    await post.save();
+  createPost: {
+    handle: async (req, res) => {
+      const post = new Post(req.body.data);
+      await post.save();
 
-    return res.json(post);
+      return res.json(post);
+    }
   },
-  likePost: async (req, res) => {
-    return res.json(req.post);
+  likePost: {
+    params: ["post"],
+    handle: async (req, res) => {
+      return res.json(req.params.post);
+    }
   },
-  test: async (req, res) => {
-    return res.json(req.params);
+  test: {
+    params: ["user", "post"],
+    handle: async (req, res) => {
+      // console.log(req.params);
+      return res.json(req.params);
+    }
   }
 };

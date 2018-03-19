@@ -1,18 +1,67 @@
+const mongoose = require("mongoose");
 const handlers = require("./handlers");
-const params = require("./params");
+
+const PARAMS = {
+  post: "Post",
+  user: "User"
+};
 
 module.exports = app => {
-  app.post("/api", params, (req, res) => {
-    const handler = handlers[req.body.action];
+  app.post("/api", (req, res) => {
+    const { action, data: { params } } = req.body;
+    const handler = handlers[action];
 
-    if (handler) {
-      return handler(req, res);
+    if (!handler) {
+      return res.send(`unknown action: ${action}`);
     }
 
-    return res.json({
-      error: {
-        message: "no such handler"
-      }
-    });
+    if (!handler.params) {
+      return handler.handle(req, res);
+    }
+
+    // handler.params.forEach(async param => {
+    //   if (!params[param]) {
+    //     return res.send(`missing required parameter: ${param}`);
+    //   }
+
+    //   const modelClass = PARAMS[param];
+    //   const instance = await mongoose.model(modelClass).findById(params[param]);
+    //   console.log("logging");
+    //   if (!instance) {
+    //     return res.send(`resource not found for parameter: ${param}`);
+    //   }
+
+    //   req.params[param] = instance;
+    //   console.log(req.params);
+    // });
+    // console.log("called first");
+
+    const promises = handler.params.map(
+      param =>
+        new Promise(async (resolve, reject) => {
+          if (!params[param]) {
+            return res.send(`missing required parameter: ${param}`);
+          }
+
+          const modelClass = PARAMS[param];
+          const instance = await mongoose
+            .model(modelClass)
+            .findById(params[param]);
+          if (!instance) {
+            reject(`resource not found for parameter: ${param}`);
+          }
+
+          resolve({ param, instance });
+        })
+    );
+
+    Promise.all(promises)
+      .then(results => {
+        results.forEach(
+          paramData => (req.params[paramData.param] = paramData.instance)
+        );
+        return handler.handle(req, res);
+      })
+      .catch(reason => res.send(reason));
   });
 };
